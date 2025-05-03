@@ -7,6 +7,7 @@ public class Main {
             switch( term.print() ){
                 case OK -> {continue loop;}
                 case EXIT -> {break loop;}
+                case BAD -> System.out.println("Bad");
             }
         }
     }
