@@ -32,7 +32,8 @@ public class Util {
     }
 
     public static Rational toRational(String numerator_str, String decimal_str, String denominator_str){
-        long numerator = Long.parseLong(numerator_str+(decimal_str!=null?decimal_str:""));
+        numerator_str = numerator_str+(decimal_str==null?"":decimal_str);
+        long numerator = Long.parseLong(numerator_str.length()==1?numerator_str+1:numerator_str);
         long denominator = 1;
 
         if(denominator_str!=null){

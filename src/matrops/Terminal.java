@@ -83,7 +83,7 @@ public class Terminal {
                 char matrix = opsMatcher.group(5).charAt(0);
                 if (data.containsKey(matrix)){
                     temp.copyData(data.get(matrix));
-                    Rational r = Util.toRational(opsMatcher.group(1)+opsMatcher.group(2), opsMatcher.group(3), opsMatcher.group(4));
+                    Rational r = Util.toRational(opsMatcher.group(1)+(opsMatcher.group(2)==null?"1":opsMatcher.group(2)), opsMatcher.group(3), opsMatcher.group(4));
                     if (r == null) {
                         System.out.println("ERR: Numero malformado");
                         return ExitCode.BAD;    
@@ -115,7 +115,6 @@ public class Terminal {
     public Expression extractAlgebraicExpression(String str){
         EnumMap<Register, String> registers = new EnumMap<>(Register.class);
         registers.put(Register.Sign, "+");
-        registers.put(Register.Integer, "1");
         Register numberRegister = Register.Integer;
         String number = "";
         boolean endOfTerm = false;
@@ -157,7 +156,7 @@ public class Terminal {
             if (step.reset){
                 registers.clear();
                 registers.put(Register.Sign, "+");
-                registers.put(Register.Integer, "1");
+                registers.remove(Register.Integer);
                 numberRegister = Register.Integer;
                 number = "";
             }
@@ -216,7 +215,8 @@ public class Terminal {
                 opsMap.get(operation).add(expr);
                 i = close-1;
             }else if (symbol == Symbol.Literal) {
-                String numerator_str = registers.remove(Register.Sign)+registers.remove(Register.Integer);
+                String numerator_str = registers.remove(Register.Integer);
+                numerator_str = registers.remove(Register.Sign)+(numerator_str==null?"":numerator_str);
                 String decimal_str = registers.remove(Register.Decimal);
                 String denominator_str = registers.remove(Register.Denominator);
 
@@ -304,7 +304,7 @@ public class Terminal {
         Step fraction = new Step();
         Step numerator_decimal = new Step();
         Step dot = new Step();
-        Step decimal = new Step();
+        //Step decimal = new Step();
         Step openParentheses = new Step();
         Step closeParentheses = new Step(); /// END
         closeParentheses.endOfTerm();
@@ -313,7 +313,10 @@ public class Terminal {
         Step multiplication = new Step();
 
         start.path.put(Symbol.Sign, sign);
-        start.path.put(Symbol.Number, adition);
+        start.path.put(Symbol.Number, integer);
+        start.path.put(Symbol.Dot, dot);                                  /// Adition         -> Dot
+        start.path.put(Symbol.OpenParentheses, openParentheses);          /// Adition         -> OpenParentheses
+        start.path.put(Symbol.Literal, literal); 
 
         adition.reset();
         adition.changeOperation(Operation.Sum);
@@ -334,7 +337,7 @@ public class Terminal {
         numerator_decimal.path.put(Symbol.OpenParentheses, openParentheses);/// Numerator/Decimal-> OpenParentheses
 
         dot.changeRegister(Register.Decimal);
-        dot.path.put(Symbol.Dot, decimal);                                  /// Dot             -> Decimal
+        dot.path.put(Symbol.Number, numerator_decimal);                                  /// Dot             -> Decimal
 
         openParentheses.path.put(Symbol.CloseParentheses, closeParentheses);/// OpenParentheses -> CloseParentheses
 
