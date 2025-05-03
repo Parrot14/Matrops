@@ -1,4 +1,4 @@
-package Matrops;
+package matrops;
 
 import java.util.HashMap;
 import java.util.Scanner;
@@ -6,8 +6,8 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Matrops.Matrix;
-import Matrops.Util;
+import matrops.Matrix;
+import matrops.Util;
 
 public class Terminal {
     private HashMap<Character,Matrix> data = new HashMap<Character,Matrix>();

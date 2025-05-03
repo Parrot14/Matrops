@@ -1,11 +1,11 @@
-package Matrops;
+package matrops;
 
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
-import Matrops.Rational;
+import matrops.Rational;
 
 public class Matrix{
     private Rational[][] matrix;

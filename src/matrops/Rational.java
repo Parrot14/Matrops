@@ -1,4 +1,4 @@
-package Matrops;
+package matrops;
 
 public class Rational{
 

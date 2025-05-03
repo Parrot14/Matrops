@@ -1,10 +1,10 @@
-package Matrops;
+package matrops;
 
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Matrops.Rational;
+import matrops.Rational;
 
 public class Util {
 
