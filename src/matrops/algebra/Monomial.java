@@ -10,6 +10,10 @@ public class Monomial extends Expression{
         this.literal = literal;
     }
 
+    public char getLiteral() {
+        return literal;
+    }
+
     public String toString() {
         return getCoefficient().toString()+" "+literal;
     }

@@ -22,12 +22,12 @@ public class Util {
         return n;
     }
 
-    private static Pattern rationalPattern = Pattern.compile("(^(?:\\+|-)?\\d+)(?:\\.(\\d+))?(?:\\/(\\d+))?$");
+    private static Pattern rationalPattern = Pattern.compile("^(\\+|-)?(\\d+)(?:\\.(\\d+))?(?:\\/(\\d+))?$");
 
     public static Rational toRational(String str){
         Matcher match = rationalPattern.matcher(str);
         if(match.matches())
-            return toRational(match.group(1), match.group(2), match.group(3));
+            return toRational((match.group(1)==null?"+":match.group(1))+match.group(2), match.group(3), match.group(4));
         return null;
     }
 

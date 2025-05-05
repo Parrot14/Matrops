@@ -97,6 +97,26 @@ public class Matrix{
         }
     }
 
+    public boolean multiply(Matrix m){
+        if (this.c != m.f)
+            return false;
+        
+        Rational[][] product = new Rational[this.f][m.c];
+        Rational aux = new Rational(1);
+        for (int pf = 0; pf < this.f; pf++) {
+            for (int pc = 0; pc < m.c; pc++) {
+                Rational acc = new Rational(0);
+                for (int i = 0; i < this.c; i++) {
+                    acc.add(matrix[pf][i].copyTo(aux).multiply(m.matrix[i][pc]));
+                }
+                product[pf][pc] = acc;
+            }
+        }
+        this.matrix = product;
+        this.c = m.c;
+        return true;
+    }
+
     public boolean sum(Matrix m){
         if (!(m.c == c && m.f == f))
             return false;

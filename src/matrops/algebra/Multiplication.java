@@ -9,6 +9,14 @@ public class Multiplication extends Expression{
         this.factors = factors;
     }
 
+    public Expression getFactor(int i){
+        return factors[i];
+    }
+
+    public int size(){
+        return factors.length;
+    }
+
     public String toString() {
         return "Mul( "+getCoefficient()+" )"+Arrays.toString(factors);
     }
