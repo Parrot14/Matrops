@@ -11,6 +11,7 @@ import matrops.algebra.Expression;
 import matrops.algebra.Monomial;
 import matrops.algebra.Multiplication;
 import matrops.algebra.Polinomial;
+import matrops.functions.LU;
 
 public class Terminal {
     private HashMap<Character,Matrix> data = new HashMap<Character,Matrix>();
@@ -35,9 +36,52 @@ public class Terminal {
         Scanner sc = new Scanner(System.in);
         String input = sc.nextLine().trim();
 
-        switch (input.toLowerCase()) {
-            case "help" -> System.out.println(" help: print this page\n exit: exit the program(no confirmation, all data will be loss)");
-            case "exit" -> {return ExitCode.EXIT;}
+        if (input.startsWith("/")) {
+            String cmd[] = input.split(" ");
+            switch (cmd[0]) {
+                case "/help" -> System.out.println( " /help: print this page\n"+
+                                                    " /exit: exit the program(no confirmation, all data will be loss)"+
+                                                    " /lu (a) (b): compute LU factorization");
+                case "/exit" -> {return ExitCode.EXIT;}
+                case "/lu" -> {
+                    if (cmd.length != 3) {
+                        System.out.println("Comando mal formado");
+                        return ExitCode.BAD;
+                    }
+
+                    if (cmd[1].length() != 1 || cmd[2].length() != 1) {
+                        System.out.println("Identificador de matriz invalido");
+                    }
+
+                    Character a_id = cmd[1].charAt(0);
+                    Character b_id = cmd[2].charAt(0);
+                    Matrix a_matrix = data.get(a_id);
+                    Matrix b_matrix = data.get(b_id);
+
+                    if (a_matrix == null || b_matrix == null){
+                        System.out.println("Matriz no registrada");
+                        return ExitCode.BAD;
+                    }
+
+                    if (!a_matrix.isSquare()) {
+                        System.out.println("Matriz no cuadrada");
+                        return ExitCode.BAD;
+                    }
+
+                    if (b_matrix.getColumns() != 1 || b_matrix.getRows() != a_matrix.getRows()) {
+                        System.out.println("Matriz b no valida");
+                        return ExitCode.BAD;
+                    }
+                
+                    LU lu = LU.createLU(a_matrix,b_matrix);
+                    lu.computeLU();
+                    return ExitCode.OK;
+                }
+                default -> {
+                    System.out.println("Comando invalido");
+                    return ExitCode.BAD;
+                }
+            }
         }
         
         Matcher equalMatcher = equalPattern.matcher(input);
