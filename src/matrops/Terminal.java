@@ -48,7 +48,7 @@ public class Terminal {
                                         " /exit: salir del programa(sin confirmacion, todos los datos se perderan)\n"+
                                         " /lu (a) (b): resolver sistema lineal por factorización LU\n"+
                                         " /showexpr: deja de resolver formulas y solo mostrar representación logica interna\n"+
-                                        " \n\tOPERACIONES\n"+
+                                        " \n\tOPERACIONES(Son usadas como terminos en una expresión)\n"+
                                         " $inv/(a)$: obtener inversa por eliminacion Gaussiana");
                     return ExitCode.OK;}
                 case "/exit" -> {return ExitCode.EXIT;}
