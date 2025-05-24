@@ -42,9 +42,12 @@ public class Terminal {
         if (input.startsWith("/")) {
             String cmd[] = input.split(" ");
             switch (cmd[0]) {
-                case "/help" -> System.out.println( " /help: print this page\n"+
-                                                    " /exit: exit the program(no confirmation, all data will be loss)"+
-                                                    " /lu (a) (b): compute LU factorization");
+                case "/help" -> System.out.println( " \tCOMANDOS\n"+
+                                                    " /help: print this page\n"+
+                                                    " /exit: exit the program(no confirmation, all data will be loss)\n"+
+                                                    " /lu (a) (b): compute LU factorization\n\n"+
+                                                    " \tOPERACIONES\n"+
+                                                    " $inv/(a)$: get inverse by gaussian elimination");
                 case "/exit" -> {return ExitCode.EXIT;}
                 case "/lu" -> {
                     if (cmd.length != 3) {
