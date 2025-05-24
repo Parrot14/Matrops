@@ -15,6 +15,6 @@ public class Inverse extends Expression{
     }
 
     public String toString() {
-        return "Inverse("+literal+")";
+        return "Inverse("+getCoefficient().toString()+")("+literal+")";
     }
 }

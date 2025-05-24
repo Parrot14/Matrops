@@ -43,11 +43,12 @@ public class Terminal {
             String cmd[] = input.split(" ");
             switch (cmd[0]) {
                 case "/help" -> System.out.println( " \tCOMANDOS\n"+
-                                                    " /help: print this page\n"+
-                                                    " /exit: exit the program(no confirmation, all data will be loss)\n"+
-                                                    " /lu (a) (b): compute LU factorization\n\n"+
-                                                    " \tOPERACIONES\n"+
-                                                    " $inv/(a)$: get inverse by gaussian elimination");
+                                                    " /help: imprime esta pagina\n"+
+                                                    " /exit: salir del programa(sin confirmacion, todos los datos se perderan)\n"+
+                                                    " /lu (a) (b): resolver sistema lineal por factorización LUn\n"+
+                                                    " /showexpr: deja de resolver formulas y solo mostrar representación logica interna\n"+
+                                                    " \n\tOPERACIONES\n"+
+                                                    " $inv/(a)$: obtener inversa por eliminacion Gaussiana");
                 case "/exit" -> {return ExitCode.EXIT;}
                 case "/lu" -> {
                     if (cmd.length != 3) {
@@ -199,7 +200,12 @@ public class Terminal {
                 System.out.println("La matriz '"+inv.getLiteral()+"' no es invertible");
                 return null;
             }
-            return func.getInverse();
+
+            Matrix inv_mat = func.getInverse();
+
+            inv_mat.multiply(inv.getCoefficient());
+
+            return inv_mat;
         }
         return null;
     }
