@@ -104,7 +104,7 @@ public class InverseFunction {
         if(matrix.getRational(index, index).equals(Rational.ZERO)){
             int findany = findFirstDiferentBelow(index, Rational.ZERO);
             if(findany != -1){
-                switchRows(order, findany);
+                switchRows(index, findany);
                 System.out.println(this);
             }else{
                 System.out.println("\t\t\t----- SIN SOLUCIÓN UNICA -----");
