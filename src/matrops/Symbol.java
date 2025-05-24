@@ -8,9 +8,12 @@ public enum Symbol {
     Multiplication,
     Literal,
     OpenParentheses,
-    CloseParentheses;
+    CloseParentheses,
+    SpecialOperation;
     
     public static Symbol getSymbol(char c) {
+        if (c == '$')
+            return SpecialOperation;
         if (c == '+' || c == '-')
             return Sign;
         if (Character.isDigit(c))

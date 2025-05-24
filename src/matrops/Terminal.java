@@ -8,9 +8,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import matrops.algebra.Expression;
+import matrops.algebra.Inverse;
 import matrops.algebra.Monomial;
 import matrops.algebra.Multiplication;
 import matrops.algebra.Polinomial;
+import matrops.functions.InverseFunction;
 import matrops.functions.LU;
 
 public class Terminal {
@@ -18,6 +20,7 @@ public class Terminal {
     private final Pattern equalPattern = Pattern.compile("^(\\w=)?(.+)?$");
     private final Pattern opsPattern = Pattern.compile("\\G(^|\\+|-)(?:(\\d+)(?:\\.(\\d+))?(?:\\/(\\d+))?)?([a-zA-Z])");//"\\G(^|\\+|-)(\\d+)*([a-zA-Z])+");
     private final char accumulator = ' ', helper = '?';
+    private boolean show_expr = false;
 
     public Terminal(){
         data.put(accumulator, new Matrix());
@@ -77,6 +80,14 @@ public class Terminal {
                     lu.computeLU();
                     return ExitCode.OK;
                 }
+                case "/showexpr" ->{
+                    show_expr = !show_expr;
+                    if (show_expr)
+                        System.out.println("Mostrando expresiones en lugar de resultados");
+                    else
+                        System.out.println("Mostrando resultados");
+                    return ExitCode.OK;
+                }
                 default -> {
                     System.out.println("Comando invalido");
                     return ExitCode.BAD;
@@ -110,17 +121,23 @@ public class Terminal {
                 return ExitCode.BAD;
             }
 
-            Matrix result = computeExpression(expr);
+            if (!show_expr) {
+                Matrix result = computeExpression(expr);
 
-            if (result == null){
-                System.out.println("ERR: Error al computar operación (suma de matrices de orden distinto, multiplicacion incompatible o uso de matriz no registrada)");
-                return ExitCode.BAD;
-            }
+                if (result == null){
+                    System.out.println("ERR: Error al computar operación (suma de matrices de orden distinto, multiplicacion incompatible o uso de matriz no registrada)");
+                    return ExitCode.BAD;
+                }
 
-            equalMatrix.copyData(result);
+                equalMatrix.copyData(result);
+            }else
+                System.out.println(expr);
         }
 
-        System.out.println(equalMatrix.toString().replaceFirst("    ", " "+saveTo+" ="));
+        if (!equalMatrix.isNull())
+            System.out.println(equalMatrix.toString().replaceFirst("    ", " "+saveTo+" ="));
+        else
+            data.remove(saveTo);
 
         return ExitCode.OK;
     }
@@ -128,8 +145,10 @@ public class Terminal {
     private Matrix computeExpression(Expression expr){
         if (expr instanceof Monomial) {
             Monomial mono = (Monomial) expr;
-            if (!data.containsKey(mono.getLiteral()))
+            if (!data.containsKey(mono.getLiteral())){
+                System.out.println("La matriz '"+mono.getLiteral()+"' no existe");
                 return null;
+            }
             Matrix res = new Matrix();
             res.copyData(data.get(mono.getLiteral()));
             res.multiply(mono.getCoefficient());
@@ -162,6 +181,22 @@ public class Terminal {
             }
             res.multiply(pol.getCoefficient());
             return res;
+        }else if (expr instanceof Inverse){
+            Inverse inv = (Inverse) expr;
+            if (!data.containsKey(inv.getLiteral())){
+                System.out.println("La matriz '"+inv.getLiteral()+"' no existe");
+                return null;
+            }
+            Matrix res = new Matrix();
+            res.copyData(data.get(inv.getLiteral()));
+
+            InverseFunction func = new InverseFunction(res);
+
+            if (!func.compute()) {
+                System.out.println("La matriz '"+inv.getLiteral()+"' no es invertible");
+                return null;
+            }
+            return func.getInverse();
         }
         return null;
     }
@@ -220,6 +255,51 @@ public class Terminal {
 
             if (symbol == Symbol.Sign){
                 registers.put(Register.Sign, ch+"");
+            }else if (symbol == Symbol.SpecialOperation){
+                boolean end = true;
+                String op = "";
+                for (int j = i+1; j < str.length(); j++) {
+                    char d = str.charAt(j);
+                    if(d=='$'){
+                        i = j;
+                        end = false;
+                        break;
+                    }
+                    op += d;
+                }
+                if (end)
+                    return null;
+                
+                String op_opt[] = op.split("/");
+
+                Expression expr;
+
+                String numerator_str = registers.remove(Register.Integer);
+                numerator_str = registers.remove(Register.Sign)+(numerator_str==null?"":numerator_str);
+                String decimal_str = registers.remove(Register.Decimal);
+                String denominator_str = registers.remove(Register.Denominator);
+
+                Rational rational = Util.toRational(numerator_str, decimal_str, denominator_str);
+                
+                if (rational == null)
+                    return null;
+
+                switch (op_opt[0]) {
+                    case "inv"->{
+                        if (op_opt.length!=2 ||
+                            op_opt[1].length()!=1) {
+                            System.out.println("La operacion especial '"+op+"' malformada");
+                            return null;
+                        }
+                        expr = new Inverse(rational,op_opt[1].charAt(0));
+                    }
+                    default->{
+                        System.out.println("La operacion especial '"+op_opt+"' no existe");
+                        return null;
+                    }
+                }
+
+                opsMap.get(operation).add(expr);
             }else if (symbol == Symbol.Number){
                 boolean end = true;
                 for (int j = i; j < str.length(); j++) {
@@ -257,10 +337,10 @@ public class Terminal {
 
                 if (expr == null)
                     return null;
-                    String numerator_str = registers.remove(Register.Integer);
-                    numerator_str = registers.remove(Register.Sign)+(numerator_str==null?"":numerator_str);
-                    String decimal_str = registers.remove(Register.Decimal);
-                    String denominator_str = registers.remove(Register.Denominator);
+                String numerator_str = registers.remove(Register.Integer);
+                numerator_str = registers.remove(Register.Sign)+(numerator_str==null?"":numerator_str);
+                String decimal_str = registers.remove(Register.Decimal);
+                String denominator_str = registers.remove(Register.Denominator);
 
                 Rational rational = Util.toRational(numerator_str, decimal_str, denominator_str);
                 
@@ -368,12 +448,15 @@ public class Terminal {
         Step literal = new Step();          /// END
         literal.endOfTerm();
         Step multiplication = new Step();
+        Step specialOperation = new Step();
+        specialOperation.endOfTerm();
 
         start.path.put(Symbol.Sign, sign);
         start.path.put(Symbol.Number, integer);
         start.path.put(Symbol.Dot, dot);                                  /// Adition         -> Dot
         start.path.put(Symbol.OpenParentheses, openParentheses);          /// Adition         -> OpenParentheses
-        start.path.put(Symbol.Literal, literal); 
+        start.path.put(Symbol.Literal, literal);
+        start.path.put(Symbol.SpecialOperation, specialOperation);
 
         adition.reset();
         adition.changeOperation(Operation.Sum);
@@ -381,17 +464,20 @@ public class Terminal {
         adition.path.put(Symbol.Dot, dot);                                  /// Adition         -> Dot
         adition.path.put(Symbol.OpenParentheses, openParentheses);          /// Adition         -> OpenParentheses
         adition.path.put(Symbol.Literal, literal);                          /// Adition         -> Literal
+        adition.path.put(Symbol.SpecialOperation, specialOperation);        /// Adition         -> SpecialOperation
 
         integer.path.put(Symbol.Dot, dot);                                  /// Integer         -> Dot
         integer.path.put(Symbol.Fraction, fraction);                        /// Integer         -> Fraction
         integer.path.put(Symbol.OpenParentheses, openParentheses);          /// Integer         -> OpenParentheses
         integer.path.put(Symbol.Literal, literal);                          /// Integer         -> Literal
+        integer.path.put(Symbol.SpecialOperation, specialOperation);        /// Integer         -> SpecialOperation
 
         fraction.changeRegister(Register.Denominator);
         fraction.path.put(Symbol.Number, numerator_decimal);                /// Fraction        -> Numerator
 
         numerator_decimal.path.put(Symbol.Literal, literal);                /// Numerator/Decimal-> Literal
         numerator_decimal.path.put(Symbol.OpenParentheses, openParentheses);/// Numerator/Decimal-> OpenParentheses
+        numerator_decimal.path.put(Symbol.SpecialOperation, specialOperation);/// Numerator/Decimal-> SpecialOperation
 
         dot.changeRegister(Register.Decimal);
         dot.path.put(Symbol.Number, numerator_decimal);                                  /// Dot             -> Decimal
@@ -407,15 +493,20 @@ public class Terminal {
         multiplication.path.put(Symbol.Number, integer);                    /// Multiplication  -> Integer 
         multiplication.path.put(Symbol.Dot, dot);                           /// Multiplication  -> Dot
         multiplication.path.put(Symbol.OpenParentheses, openParentheses);   /// Multiplication  -> OpenParentheses
-        multiplication.path.put(Symbol.Literal, literal); 
+        multiplication.path.put(Symbol.Literal, literal);
+        multiplication.path.put(Symbol.SpecialOperation, specialOperation);
 
         sign.path.put(Symbol.Number, integer);                              /// Sign            -> Integer 
         sign.path.put(Symbol.Dot, dot);                                     /// Sign            -> Dot
         sign.path.put(Symbol.OpenParentheses, openParentheses);             /// Sign            -> OpenParentheses
         sign.path.put(Symbol.Literal, literal);                             /// Sign            -> Literal
+        sign.path.put(Symbol.SpecialOperation, specialOperation);                             /// Sign            -> Literal
 
         literal.path.put(Symbol.Sign, adition);
         literal.path.put(Symbol.Multiplication, multiplication);
+
+        specialOperation.path.put(Symbol.Sign, adition);
+        specialOperation.path.put(Symbol.Multiplication, multiplication);
 
         return start;
     }

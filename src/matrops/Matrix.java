@@ -14,6 +14,10 @@ public class Matrix{
         return c;
     }
 
+    public boolean isNull(){
+        return matrix == null;
+    }
+
     public void setRows(int rows) {
         this.f = rows;
     }
@@ -160,6 +164,18 @@ public class Matrix{
 
     public Rational getRational(int row, int column){
         return matrix[row][column];
+    }
+
+    public void switchRows(int a, int b){
+        Rational[] temp = matrix[a];
+        matrix[a] = matrix[b];
+        matrix[b] = temp;
+    }
+
+    public void multiplyRow(Rational mul, int index){
+        for (Rational rational : matrix[index]) {
+            rational.multiply(mul);
+        }
     }
 
     public void mulSum(Rational mul, int row_mul, int row_sum){
